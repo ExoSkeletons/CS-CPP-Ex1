@@ -150,7 +150,7 @@ TEST_SUITE("algorithms") {
             cout << endl;
             //*/
 
-            delete djikstra;
+            delete[] djikstra;
 
             SUBCASE("Negative weights") {
                 cout << "Testing negative weights (should be unsupported)" << endl;

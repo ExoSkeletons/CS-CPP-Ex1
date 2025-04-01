@@ -32,6 +32,6 @@ test: $(EXEC_TEST)
 	./$<
 
 valgrind: $(EXEC_MAIN)
-	valgrind --leak-check=full ./$<
+	sudo valgrind --leak-check=full ./$<
 
 .PHONY: all clean valgrind Main test
