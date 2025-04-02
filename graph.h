@@ -102,14 +102,50 @@ namespace graphs {
 
         bool hasEdge(int u, int v) const;
 
+        bool hasVtx(int u) const;
+
+        int weight(int u, int v) const;
+
         int weight() const;
 
-        void print_graph(bool all_vtx) const;
-
-        void print_graph() const { print_graph(false); }
-
         bool hasNegativeWeights() const;
+
+        void print_graph() const;
+
+
+        friend std::ostream &operator<<(std::ostream &os, const Graph &g);
     };
+
+    class Algorithms {
+        static void dfs_recursive(const Graph *graph, int u, Graph *result, bool *visited);
+
+    public:
+        static Graph *bfs(const Graph *graph, int src);
+
+        static Graph **dfs(const Graph *graph, int);
+
+        static Graph *djikstra(const Graph *graph, int src);
+
+        static Graph *prim(const Graph *graph, int src);
+
+        static Graph *kruskal(const Graph *graph);
+    };
+
+    std::ostream &operator<<(std::ostream &os, const Graph &g);
+
+    static void assert_graph(const Graph *graph) {
+        if (graph == nullptr) throw std::invalid_argument("graph can't be null");
+        if (graph->n == 0) throw std::invalid_argument("graph is empty");
+    }
+
+    static void assert_graph_vtx(const Graph *graph, const int v) {
+        if (!graph->hasVtx(v)) throw std::invalid_argument("node " + std::to_string(v) + " doesn't exist");
+    }
+
+    static void assert_graph_non_negative(const Graph *graph) {
+        if (graph->hasNegativeWeights())
+            throw std::invalid_argument("negative weights are not supported");
+    }
 } // graphs
 
 

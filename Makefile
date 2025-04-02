@@ -13,19 +13,17 @@ EXEC_TEST = test.exe
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(EXEC_MAIN): $(MAIN_OBJ)
-	echo $@: $^
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(EXEC_TEST): $(TEST_OBJ)
-	echo $@: $^
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 all: $(EXEC_MAIN) $(EXEC_TEST)
 
 clean:
 	rm -f *.o $(EXEC_MAIN) $(EXEC_TEST)
 
-Main: $(EXEC_MAIN)
+main: $(EXEC_MAIN)
 	./$<
 
 test: $(EXEC_TEST)

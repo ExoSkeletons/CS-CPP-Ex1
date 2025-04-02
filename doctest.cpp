@@ -1,7 +1,6 @@
 #include <iostream>
 #include <ostream>
 
-#include "algorithm.h"
 #include "graph.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -9,7 +8,6 @@
 
 using std::cout,std::endl;
 using namespace graphs;
-using namespace algorithms;
 
 TEST_SUITE("graphs") {
     TEST_CASE("Create") {
@@ -20,6 +18,8 @@ TEST_SUITE("graphs") {
         g = new Graph(10);
         CHECK_EQ(g->n, 10);
         delete g;
+        // CHECK_THROWS(new Graph(0));
+        CHECK_THROWS(new Graph(-1));
     }
 
     TEST_CASE("Directed") {
@@ -61,8 +61,28 @@ TEST_SUITE("graphs") {
 }
 
 TEST_SUITE("algorithms") {
+    TEST_CASE("null") {
+        cout << endl << "Testing algorithms fail on null graph";
+        CHECK_THROWS(Algorithms::bfs(nullptr, 0));
+        CHECK_THROWS(Algorithms::dfs(nullptr,0));
+        CHECK_THROWS(Algorithms::djikstra(nullptr, 0));
+        CHECK_THROWS(Algorithms::prim(nullptr, 0));
+        CHECK_THROWS(Algorithms::kruskal(nullptr));
+    }
+
+    TEST_CASE("empty") {
+        cout << endl << "Testing algorithms fail on empty graph";
+        auto g = new Graph(0);
+        CHECK_THROWS(Algorithms::bfs(g, 0));
+        CHECK_THROWS(Algorithms::dfs(g,0));
+        CHECK_THROWS(Algorithms::djikstra(g, 0));
+        CHECK_THROWS(Algorithms::prim(g, 0));
+        CHECK_THROWS(Algorithms::kruskal(g));
+        delete g;
+    }
+
     TEST_CASE("Graph") {
-        cout << endl << "Testing algorithm ";
+        cout << endl << "Testing algorithms with graph ";
 
         const auto g = new Graph(6);
         g->addEdge(0, 2, 5);
@@ -79,7 +99,7 @@ TEST_SUITE("algorithms") {
 
         SUBCASE("BFS") {
             cout << "BFS" << endl;
-            const auto bfs = algorithm::bfs(g, src);
+            const auto bfs = Algorithms::bfs(g, src);
 
             CHECK_EQ(bfs->m(), g->n-1);
             CHECK_EQ(bfs->n, g->n);
@@ -107,50 +127,65 @@ TEST_SUITE("algorithms") {
 
         SUBCASE("DFS") {
             cout << "DFS" << endl;
-            const auto dfs = algorithm::dfs(g, src);
+            const auto dfs_forest = Algorithms::dfs(g, 0);
+            const auto dfs = dfs_forest[0];
+
+            // dfs->print_graph();
 
             CHECK_EQ(dfs->m(), g->n-1);
             CHECK_EQ(dfs->n, g->n);
             CHECK(!dfs->directed);
 
             // check path
-            CHECK(dfs->hasEdge(3,0));
             CHECK(dfs->hasEdge(0,2));
-            CHECK(dfs->hasEdge(2,4));
-            CHECK(dfs->hasEdge(4,5));
-            CHECK(dfs->hasEdge(5,1));
+            CHECK(dfs->hasEdge(2,3));
+            CHECK(dfs->hasEdge(3,1));
+            CHECK(dfs->hasEdge(1,5));
+            CHECK(dfs->hasEdge(5,4));
+
+            // check forest (in this case) is single-tree
+            for (int v = 1; v < g->n; v++)
+                CHECK(dfs_forest[v]==nullptr);
 
             // dfs->print_graph();
 
-            delete dfs;
+            for (int v = 0; v<g->n; v++)
+                delete dfs_forest[v];
+            delete[] dfs_forest;
         }
 
         SUBCASE("Djikstra") {
             cout << "Djikstra from (" << src << ")" << endl;
-            const auto djikstra = algorithm::djikstra(g, src);
+            const auto djikstra = Algorithms::djikstra(g, src);
+
+            int d[g->n];
+            for (int v = 0; v < g->n; v++) {
+                d[v] = djikstra->weight(src, v);
+            }
+
 
             // check path
-            CHECK_EQ(djikstra[0], 1);
-            CHECK_EQ(djikstra[1], 2); // 3)--10-->(1   >    3)--1-->(5)--0-->(0)--1-->1
-            CHECK_EQ(djikstra[2], 1);
-            CHECK_EQ(djikstra[3], 0); // (3)@
-            CHECK_EQ(djikstra[4], 1);
-            CHECK_EQ(djikstra[5], 1); // 3)--1-->(0)--0-->(5
+            CHECK_EQ(d[0], 1);
+            CHECK_EQ(d[1], 2); // 3)--10-->(1   >    3)--1-->(5)--0-->(0)--1-->1
+            CHECK_EQ(d[2], 1);
+            CHECK_EQ(d[3], 0); // (3)@
+            CHECK_EQ(d[4], 1);
+            CHECK_EQ(d[5], 1); // 3)--1-->(0)--0-->(5
 
-            CHECK_EQ(djikstra[src], 0); // @
+            CHECK_EQ(d[src], 0); // @
 
             /**/
             cout << "dist from (" << src << "): ";
             for (int i = 0; i < g->n; i++)
                 cout << "(" << i << ")" <<
-                (djikstra[i] == Graph::VtxDist::INF
+                (d[i] == Graph::VtxDist::INF
                      ? "INF"
-                     : (std::to_string(djikstra[i]))
+                     : (std::to_string(d[i]))
                 ) << ", ";
             cout << endl;
             //*/
 
-            delete[] djikstra;
+            delete djikstra;
 
             SUBCASE("Negative weights") {
                 cout << "Testing negative weights (should be unsupported)" << endl;
@@ -159,14 +194,14 @@ TEST_SUITE("algorithms") {
                 neg_graph->addEdge(0, 1, 1);
                 neg_graph->addEdge(0, 2, 0);
                 neg_graph->addEdge(1, 2, -1);
-                CHECK_THROWS(algorithm::djikstra(neg_graph, 0));
+                CHECK_THROWS(Algorithms::djikstra(neg_graph, 0));
                 delete neg_graph;
             }
         }
 
         SUBCASE("Prim") {
             cout << "Prim MST (Edge Cut) from (" << src << ")" << endl;
-            const auto mst_p = algorithm::prim(g, src);
+            const auto mst_p = Algorithms::prim(g, src);
             // check mst cost
             const auto cost = mst_p->weight();
             CHECK_EQ(cost, expected_mst_cost);
@@ -177,7 +212,7 @@ TEST_SUITE("algorithms") {
 
         SUBCASE("Kruskal") {
             cout << "Kruskal MST (Union Find)" << endl;
-            const auto mst_k = algorithm::kruskal(g);
+            const auto mst_k = Algorithms::kruskal(g);
             // check mst cost
             const auto cost = mst_k->weight();
             CHECK_EQ(cost, expected_mst_cost);
