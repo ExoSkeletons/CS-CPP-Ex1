@@ -14,9 +14,7 @@ Use make as per excercise specifications.
 
 ## Main
 UI to create and manipulate graphs.
-
 Navigate by entering numbers to select options when prompted.
-
 Use make valgrind to run the Main with memory checks.
 
 Cheeeeeeeeeerrrrssss
