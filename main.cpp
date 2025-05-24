@@ -13,10 +13,10 @@ void algorithm_ui(const Graph *g) {
     int n, src = 0;
     do {
         std::cout << "Choose Algorithm:\n" <<
-                "1. BFS\n" <<
+                "1. BFS\t" <<
                 "2. DFS\n" <<
                 "3. Djikstra\n" <<
-                "4. Prim\n" <<
+                "4. Prim\t" <<
                 "5. Kruskal\n" <<
                 "0. <\n";
         std::cin >> n;
@@ -83,10 +83,10 @@ void graph_ui(Graph *g) {
     int n, u, v, w;
     do {
         std::cout << "Choose action:\n" <<
-                "1. Print graph\n" <<
+                "1. Print graph\t" <<
                 "2. Run Algorithm\n" <<
-                "3. Add edge\n" <<
-                "4. Remove edge\n" <<
+                "3. Add edge\t" <<
+                "4. Remove edge\t" <<
                 "5. Check edge\n" <<
                 "6. Check vtx\n" <<
                 "0. Discard graph\n";
